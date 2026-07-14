@@ -3,111 +3,174 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#5b0f19">
-  <meta name="description" content="Logistics Warehouse load board">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Logistics Warehouse Operations Dashboard">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIINfQ3yn5MZJOZAuZEMD/2Ss1pt8OMTnA4=" crossorigin="">
   <link rel="stylesheet" href="styles.css">
-  <title>LWH Load Board</title>
+  <title>LWH Operations Dashboard</title>
 </head>
 <body>
-  <header class="app-header">
-    <div>
-      <div class="eyebrow">LOGISTICS WAREHOUSE</div>
-      <h1>Load Board</h1>
-      <div id="syncStatus" class="sync-status">Loading published schedule…</div>
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+    <div class="brand">
+      <span class="brand-kicker">LOGISTICS WAREHOUSE</span>
+      <strong>Operations Dashboard</strong>
     </div>
-    <div class="header-right">
-      <div class="live-panels">
-        <div class="live-panel clock-panel">
-          <span id="currentDate">Loading date…</span>
-          <strong id="currentTime">--:-- --</strong>
-        </div>
-        <div class="live-panel weather-panel">
-          <select id="weatherLocation" aria-label="Weather location">
-            <option value="fort-smith">Fort Smith, AR</option>
-            <option value="dallas">Dallas, TX</option>
-          </select>
-          <strong id="weatherNow">Weather loading…</strong>
-          <span id="weatherDetail"></span>
-        </div>
+    <div class="topbar-live">
+      <div class="clock"><span id="currentDate"></span><strong id="currentTime"></strong></div>
+      <div class="weather" id="weatherPanel">
+        <span id="weatherPlace">Fort Smith, AR</span>
+        <strong id="weatherNow">Weather loading…</strong>
       </div>
-      <div class="header-actions">
-        <button id="installBtn" class="button secondary" hidden>Install App</button>
-        <button id="refreshBtn" class="button">Refresh</button>
-      </div>
+    </div>
+    <div class="top-actions">
+      <button id="installBtn" class="ghost" hidden>Install</button>
+      <button id="refreshAllBtn" class="primary">Refresh Data</button>
     </div>
   </header>
 
-  <main>
-    <section id="notice" class="notice" hidden></section>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <nav>
+        <button class="nav-item active" data-module="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item" data-module="loads"><span>⇄</span>Load Board</button>
+        <button class="nav-item" data-module="calendar"><span>□</span>Calendar</button>
+        <button class="nav-item" data-module="map"><span>◎</span>Shipment Map</button>
+        <button class="nav-item" data-module="inventory"><span>▦</span>Inventory</button>
+        <button class="nav-item" data-module="analytics"><span>▥</span>Analytics</button>
+        <button class="nav-item" data-module="settings"><span>⚙</span>Settings</button>
+      </nav>
+      <div class="sidebar-footer">
+        <strong>Version 2.0.0</strong>
+        <span id="dataStatus">Waiting for data</span>
+      </div>
+    </aside>
 
-    <section class="toolbar">
-      <label class="search">
-        <span>Search</span>
-        <input id="searchInput" type="search" placeholder="Customer, pro, reference, carrier, item…">
-      </label>
-      <label>
-        <span>Warehouse</span>
-        <select id="warehouseFilter"><option value="">All warehouses</option></select>
-      </label>
-      <label>
-        <span>Direction</span>
-        <select id="directionFilter">
-          <option value="">Inbound & outbound</option>
-          <option value="INBOUND">Inbound</option>
-          <option value="OUTBOUND">Outbound</option>
-        </select>
-      </label>
-      <label>
-        <span>Status</span>
-        <select id="statusFilter"><option value="">All statuses</option></select>
-      </label>
-      <label>
-        <span>Date range</span>
-        <select id="rangeFilter">
-          <option value="today">Today</option>
-          <option value="7">Next 7 days</option>
-          <option value="31">Next 31 days</option>
-          <option value="past">Past 91 days</option>
-          <option value="all">All published rows</option>
-        </select>
-      </label>
-      <label>
-        <span>Specific date</span>
-        <input id="exactDateFilter" type="date">
-      </label>
-      <button id="clearFilters" class="clear-filter" type="button">Clear filters</button>
-    </section>
+    <main class="workspace">
+      <section class="global-filter card">
+        <label class="search-field">
+          <span>Unified search</span>
+          <input id="globalSearch" type="search" placeholder="Load, customer, item, city, bay, LWH ID…">
+        </label>
+        <label><span>Warehouse</span><select id="globalWarehouse"><option value="">All warehouses</option></select></label>
+        <label><span>Direction</span><select id="globalDirection"><option value="">Inbound & outbound</option><option>INBOUND</option><option>OUTBOUND</option></select></label>
+        <label><span>Specific date</span><input id="globalDate" type="date"></label>
+        <button id="clearGlobal" class="secondary">Clear</button>
+      </section>
 
-    <section id="kpis" class="kpi-grid"></section>
+      <section id="dashboardModule" class="module active">
+        <div class="module-heading"><div><span class="eyebrow">TODAY AT A GLANCE</span><h1>Operations Dashboard</h1></div><button class="secondary" data-go="loads">Open Load Board</button></div>
+        <div id="dashboardKpis" class="kpi-grid"></div>
+        <div class="dashboard-grid">
+          <article class="card span-2">
+            <div class="card-heading"><div><span class="eyebrow">SHIPMENT ACTIVITY</span><h2>Today by Warehouse</h2></div></div>
+            <div id="warehouseSnapshot"></div>
+          </article>
+          <article class="card">
+            <div class="card-heading"><div><span class="eyebrow">NEXT UP</span><h2>Upcoming Loads</h2></div></div>
+            <div id="upcomingLoads"></div>
+          </article>
+          <article class="card">
+            <div class="card-heading"><div><span class="eyebrow">INVENTORY</span><h2>Current Snapshot</h2></div><button class="text-button" data-go="inventory">View inventory</button></div>
+            <div id="inventorySnapshot"></div>
+          </article>
+          <article class="card span-2">
+            <div class="card-heading"><div><span class="eyebrow">GEOGRAPHY</span><h2>Top Shipment Cities</h2></div><button class="text-button" data-go="map">Open map</button></div>
+            <div id="citySnapshot"></div>
+          </article>
+        </div>
+      </section>
 
-    <nav class="tabs" aria-label="Views">
-      <button class="tab active" data-view="board">Load Board</button>
-      <button class="tab" data-view="calendar">Calendar</button>
-      <button class="tab" data-view="table">Table</button>
-      <button class="tab" data-view="summary">Summary</button>
-    </nav>
+      <section id="loadsModule" class="module">
+        <div class="module-heading"><div><span class="eyebrow">TRANSPORTATION</span><h1>Load Board</h1></div>
+          <div class="segmented"><button class="active" data-load-range="today">Today</button><button data-load-range="7">Next 7 Days</button><button data-load-range="31">Next 31</button><button data-load-range="all">All</button></div>
+        </div>
+        <div id="loadKpis" class="kpi-grid compact"></div>
+        <div id="loadBoard"></div>
+      </section>
 
-    <section id="boardView" class="view"></section>
-    <section id="calendarView" class="view" hidden></section>
-    <section id="tableView" class="view" hidden></section>
-    <section id="summaryView" class="view" hidden></section>
-  </main>
+      <section id="calendarModule" class="module">
+        <div class="module-heading"><div><span class="eyebrow">SCHEDULE</span><h1>Calendar</h1></div>
+          <div class="calendar-nav"><button id="prevMonth">←</button><button id="calendarToday">Today</button><button id="nextMonth">→</button></div>
+        </div>
+        <h2 id="calendarTitle" class="calendar-title"></h2>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </section>
 
-  <dialog id="loadDialog">
-    <button id="closeDialog" class="dialog-close" aria-label="Close">×</button>
-    <div id="dialogContent"></div>
-  </dialog>
+      <section id="mapModule" class="module">
+        <div class="module-heading"><div><span class="eyebrow">SHIPMENT GEOGRAPHY</span><h1>Shipment Map</h1></div>
+          <div class="map-options"><label><input id="mapClusterToggle" type="checkbox" checked> Group nearby cities</label><button id="fitMapBtn" class="secondary">Fit All</button></div>
+        </div>
+        <div class="map-layout">
+          <div id="shipmentMap"></div>
+          <aside class="card map-panel">
+            <h2>Visible Cities</h2>
+            <p class="muted">Select a city marker to review its loads or filter the Load Board.</p>
+            <div id="mapCityList"></div>
+          </aside>
+        </div>
+      </section>
 
-  <template id="emptyTemplate">
-    <div class="empty-state">
-      <h2>No matching loads</h2>
-      <p>Adjust the date range or filters.</p>
-    </div>
-  </template>
+      <section id="inventoryModule" class="module">
+        <div class="module-heading"><div><span class="eyebrow">CURRENT STOCK</span><h1>Inventory</h1></div>
+          <div class="inventory-view-toggle segmented"><button class="active" data-inv-view="cards">Cards</button><button data-inv-view="table">Table</button></div>
+        </div>
+        <div id="inventoryKpis" class="kpi-grid compact"></div>
+        <div class="inventory-filters card">
+          <label><span>Customer</span><select id="inventoryCustomer"><option value="">All customers</option></select></label>
+          <label><span>Item</span><input id="inventoryItem" placeholder="Item number"></label>
+          <label><span>Bay</span><input id="inventoryBay" placeholder="Bay name"></label>
+          <label><span>Age</span><select id="inventoryAge"><option value="">All ages</option><option value="30">30+ days</option><option value="60">60+ days</option><option value="90">90+ days</option><option value="180">180+ days</option></select></label>
+        </div>
+        <div id="inventoryResults"></div>
+      </section>
 
+      <section id="analyticsModule" class="module">
+        <div class="module-heading"><div><span class="eyebrow">TRENDS</span><h1>Analytics</h1></div></div>
+        <div class="analytics-grid">
+          <article class="card"><h2>Loads by Warehouse</h2><div id="analyticsWarehouse"></div></article>
+          <article class="card"><h2>Inbound vs Outbound</h2><div id="analyticsDirection"></div></article>
+          <article class="card"><h2>Top Customers</h2><div id="analyticsCustomers"></div></article>
+          <article class="card"><h2>Top Items</h2><div id="analyticsItems"></div></article>
+        </div>
+      </section>
+
+      <section id="settingsModule" class="module">
+        <div class="module-heading"><div><span class="eyebrow">PERSONALIZE</span><h1>Settings</h1></div></div>
+        <div class="settings-grid">
+          <article class="card setting-card"><h2>Appearance</h2>
+            <label><span>Theme</span><select id="settingTheme"><option value="executive">Executive Black</option><option value="blue">Warehouse Blue</option><option value="green">Forest</option><option value="crimson">Crimson</option><option value="contrast">High Contrast</option></select></label>
+            <label><span>Accent color</span><input id="settingAccent" type="color" value="#1976d2"></label>
+            <label><span>Density</span><select id="settingDensity"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
+            <label><span>Text size</span><select id="settingTextSize"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></label>
+          </article>
+          <article class="card setting-card"><h2>Startup</h2>
+            <label><span>Default module</span><select id="settingDefaultModule"><option value="dashboard">Dashboard</option><option value="loads">Load Board</option><option value="calendar">Calendar</option><option value="map">Shipment Map</option><option value="inventory">Inventory</option></select></label>
+            <label><span>Default warehouse</span><select id="settingWarehouse"><option value="">All warehouses</option></select></label>
+          </article>
+          <article class="card setting-card"><h2>Header</h2>
+            <label class="check"><input id="settingWeather" type="checkbox" checked><span>Show weather</span></label>
+            <label><span>Weather location</span><select id="settingWeatherLocation"><option value="fort-smith">Fort Smith, AR</option><option value="dallas">Dallas, TX</option></select></label>
+            <label class="check"><input id="settingSeconds" type="checkbox" checked><span>Show clock seconds</span></label>
+          </article>
+          <article class="card setting-card"><h2>Data</h2>
+            <p><strong>Load feed</strong><br><span class="muted">Published Google Sheets CSV</span></p>
+            <p><strong>Inventory feed</strong><br><span class="muted">Published Google Sheets CSV</span></p>
+            <button id="resetSettings" class="danger">Reset settings</button>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="detailDialog"><button id="closeDialog" class="dialog-close">×</button><div id="dialogBody"></div></dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="app.js"></script>
 </body>
 </html>

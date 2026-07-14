@@ -1,12 +1,12 @@
 {
-  "name": "Logistics Warehouse Load Board v1.1",
-  "short_name": "LWH Loads",
-  "description": "Mobile and desktop load board for Logistics Warehouse",
+  "name": "Logistics Warehouse Operations Dashboard",
+  "short_name": "LWH Operations",
+  "description": "Warehouse, transportation, inventory and operations visibility",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f4f6",
-  "theme_color": "#5b0f19",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "icons/icon-192.png",
