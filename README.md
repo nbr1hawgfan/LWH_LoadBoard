@@ -159,6 +159,11 @@ Full re-skin based on feedback that the ledger/manifest look read as dated. New 
 
 - The compact calendar day-cell buttons (the 3 shown before "+N more") now read "Warehouse · Pro Number" instead of "Warehouse · Customer" — falls back to Bill To Reference if no Pro Number, then customer if neither exists. Directly solves telling apart a day with seven "WHSE10 · TRAFO" loads at a glance, without needing to open the expanded day view.
 
+## Version 2.7.3 — show every sheet column on inventory detail
+
+- Inventory detail view now has an **"All Sheet Data"** section that automatically lists any column from the CSV with a value, that isn't already one of the named fields above it. Built off the raw row data already kept in memory, so it needs no configuration and no knowledge of your exact column list — Nissan's extra `Unique4`/`Unique5`/etc. fields (or whatever a given customer group uses) show up automatically when populated, and stay invisible for records that don't use them.
+- Labels in that section use the raw column header text as-is (e.g. "Unique4"). If you want friendlier labels for specific columns — e.g. "Unique4" relabeled as "Container Number" — let me know what each one means and I can map them to proper names instead of the raw header.
+
 ### Labor module
 
 
