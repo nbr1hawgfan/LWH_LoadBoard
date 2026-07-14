@@ -3,11 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#14161a">
   <meta name="description" content="Logistics Warehouse Operations Dashboard">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIINfQ3yn5MZJOZAuZEMD/2Ss1pt8OMTnA4=" crossorigin="">
   <link rel="stylesheet" href="styles.css">
@@ -17,8 +20,11 @@
   <header class="topbar">
     <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
     <div class="brand">
-      <span class="brand-kicker">LOGISTICS WAREHOUSE</span>
-      <strong>Operations Dashboard</strong>
+      <span class="brand-mark">LWH</span>
+      <div class="brand-text">
+        <span class="brand-kicker">LOGISTICS WAREHOUSE</span>
+        <strong>Operations Dashboard</strong>
+      </div>
     </div>
     <div class="topbar-live">
       <div class="clock"><span id="currentDate"></span><strong id="currentTime"></strong></div>
@@ -46,7 +52,7 @@
         <button class="nav-item" data-module="settings"><span>⚙</span>Settings</button>
       </nav>
       <div class="sidebar-footer">
-        <strong>Version 2.1.1</strong>
+        <strong>Version 2.2.0</strong>
         <span id="dataStatus">Waiting for data</span>
       </div>
     </aside>
@@ -174,7 +180,7 @@
         <div class="settings-grid">
           <article class="card setting-card"><h2>Appearance</h2>
             <label><span>Theme</span><select id="settingTheme"><option value="executive">Executive Black</option><option value="blue">Warehouse Blue</option><option value="green">Forest</option><option value="crimson">Crimson</option><option value="contrast">High Contrast</option></select></label>
-            <label><span>Accent color</span><input id="settingAccent" type="color" value="#1976d2"></label>
+            <label><span>Accent color</span><input id="settingAccent" type="color" value="#7a1230"></label>
             <label><span>Density</span><select id="settingDensity"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
             <label><span>Text size</span><select id="settingTextSize"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></label>
           </article>

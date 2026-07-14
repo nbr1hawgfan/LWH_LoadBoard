@@ -76,18 +76,19 @@ Time_Clock_Location, Warehouse_Code, Total_Hours, Regular_Hours,
 Overtime_Hours, Hourly_Pay_Rate, Daily_Base_Wages,
 Benefits_21pct, Daily_Actual_Cost.
 
+## Version 2.2.0 — visual redesign
+
+- Replaced the generic rounded-card look with a flatter, denser "dock ledger" design language: hairline-bordered panels, a joined KPI ledger strip in place of individual shadow boxes, and manifest-ticket style load cards.
+- All numeric values (KPIs, clock, bar chart figures, table columns) now use tabular monospace figures (IBM Plex Mono) so numbers line up and scan quickly across dense screens.
+- Headings, eyebrows, nav labels and buttons use a condensed display face (Barlow Condensed) for a dock-signage feel; body copy stays on Inter for readability.
+- Default accent color changed from blue to the maroon (#7a1230) used across the rest of the LWH tool suite, for brand consistency. Existing theme options (Warehouse Blue, Forest, Crimson, High Contrast) and the custom accent color picker are unaffected.
+- Added a wide-desktop breakpoint (1440px+) that expands the Dashboard and Analytics grids to 4 columns to make better use of large monitors.
+- Tables now have zebra striping and a hover highlight for easier row-tracking in Labor and Inventory table views.
+- No functional or data changes — this release only touches `styles.css`, the topbar markup in `index.html`, and font/version metadata.
+
 ### Labor module
 - Today, last 7 days, current Sunday–Saturday workweek, last 31 days, or all.
 - Employee type, employee name, clock location, warehouse and minimum-OT filters.
 - Employee, hours, regular hours, overtime and actual-cost KPIs.
 - Warehouse hours, warehouse cost, employee-type and OT-leader summaries.
 - Full labor detail table.
-
-
-## Version 2.1.1
-
-- Added embedded Leaflet core layout CSS as a fallback when the external stylesheet is blocked or delayed.
-- Prevented map tile images from expanding the page and creating horizontal overflow.
-- Added additional map resize handling after the Map module becomes visible.
-- Inventory age is now marked unavailable when the CSV has neither a received-date nor an age-days column.
-- The 90+ day KPI and age filter no longer assume missing age equals zero.
