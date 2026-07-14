@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#5b0f19">
+  <meta name="description" content="Logistics Warehouse load board">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>LWH Load Board</title>
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <div class="eyebrow">LOGISTICS WAREHOUSE</div>
+      <h1>Load Board</h1>
+      <div id="syncStatus" class="sync-status">Loading published schedule…</div>
+    </div>
+    <div class="header-actions">
+      <button id="installBtn" class="button secondary" hidden>Install App</button>
+      <button id="refreshBtn" class="button">Refresh</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="notice" class="notice" hidden></section>
+
+    <section class="toolbar">
+      <label class="search">
+        <span>Search</span>
+        <input id="searchInput" type="search" placeholder="Customer, pro, reference, carrier, item…">
+      </label>
+      <label>
+        <span>Warehouse</span>
+        <select id="warehouseFilter"><option value="">All warehouses</option></select>
+      </label>
+      <label>
+        <span>Direction</span>
+        <select id="directionFilter">
+          <option value="">Inbound & outbound</option>
+          <option value="INBOUND">Inbound</option>
+          <option value="OUTBOUND">Outbound</option>
+        </select>
+      </label>
+      <label>
+        <span>Status</span>
+        <select id="statusFilter"><option value="">All statuses</option></select>
+      </label>
+      <label>
+        <span>Date range</span>
+        <select id="rangeFilter">
+          <option value="today">Today</option>
+          <option value="7">Next 7 days</option>
+          <option value="31">Next 31 days</option>
+          <option value="past">Past 91 days</option>
+          <option value="all">All published rows</option>
+        </select>
+      </label>
+    </section>
+
+    <section id="kpis" class="kpi-grid"></section>
+
+    <nav class="tabs" aria-label="Views">
+      <button class="tab active" data-view="board">Load Board</button>
+      <button class="tab" data-view="calendar">Calendar</button>
+      <button class="tab" data-view="table">Table</button>
+      <button class="tab" data-view="summary">Summary</button>
+    </nav>
+
+    <section id="boardView" class="view"></section>
+    <section id="calendarView" class="view" hidden></section>
+    <section id="tableView" class="view" hidden></section>
+    <section id="summaryView" class="view" hidden></section>
+  </main>
+
+  <dialog id="loadDialog">
+    <button id="closeDialog" class="dialog-close" aria-label="Close">×</button>
+    <div id="dialogContent"></div>
+  </dialog>
+
+  <template id="emptyTemplate">
+    <div class="empty-state">
+      <h2>No matching loads</h2>
+      <p>Adjust the date range or filters.</p>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
