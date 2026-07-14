@@ -2,7 +2,7 @@
 const CONFIG={
   loadCsv:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTgw11TS3xBI37HrqoJmJSI1ZSy5mxhT6-9BBUzr3jj9119oUZwAIAI-caD4W3m0SwjQdE7Xd4Pazf_/pub?output=csv",
   inventoryCsv:"https://docs.google.com/spreadsheets/d/e/2PACX-1vR88eoG2Hhmq_JCsS_jZMnBiTWlcmehB4i0A5Z6BXZ2oykJ0KqGB6IhrZc0Tr5l5ZOYxtuy8OffpPL-/pub?output=csv",
-  version:"2.0.0",
+  version:"2.0.1",
   timezone:"America/Chicago"
 };
 const DEFAULT_SETTINGS={theme:"executive",accent:"#1976d2",density:"comfortable",textSize:"normal",defaultModule:"dashboard",warehouse:"",weather:true,weatherLocation:"fort-smith",seconds:true};
@@ -20,8 +20,70 @@ function normalizeLoad(raw){return{key:clean(pick(raw,"LoadKey")),date:parseDate
 function groupLoads(rows){const map=new Map();rows.forEach(r=>{const key=r.key||["LOAD",dateKey(r.date),r.whse,r.direction,r.pro,r.billRef,r.customer].join("|");if(!map.has(key))map.set(key,{...r,key,items:[]});const l=map.get(key);if(r.item||r.units||r.qty){const ik=`${r.item}|${r.description}`,e=l.items.find(x=>x.key===ik);if(e){e.units+=r.units;e.qty+=r.qty}else l.items.push({key:ik,item:r.item||"Unspecified",description:r.description,units:r.units,qty:r.qty})}});return[...map.values()].sort((a,b)=>(a.date?.valueOf()||0)-(b.date?.valueOf()||0))}
 function normalizeInventory(raw){const received=parseDate(pick(raw,"DateReceived","ReceivedDate","SystemCreatedOn","CreatedOn","Received","InboundDate"));const age=num(pick(raw,"AgeDays","DaysInInventory","DaysOld"))||(received?Math.max(0,Math.floor((new Date()-received)/86400000)):0);return{lwh:clean(pick(raw,"LWH_ID","LWHID","ControlNumber","PalletID")),customer:clean(pick(raw,"Customer","SubCustNm","SubCust","BillToName")),customerId:clean(pick(raw,"Customer_ID","CustomerID","Comments")),item:clean(pick(raw,"ItemNm","Item","ItemNumber")),description:clean(pick(raw,"ItemDescription","ItemDesc","Description1")),lot:clean(pick(raw,"LotNum","Lot","LotNm")),qty:num(pick(raw,"Qty","Quantity")),units:num(pick(raw,"Units","UnitCount"))||1,bay:clean(pick(raw,"BayName","Bay","Location")),warehouse:clean(pick(raw,"Warehouse","WHSE","LocationCode","Location")),received,age,invReceipt:clean(pick(raw,"INV_Receipt","InvReceipt")),raw}}
 function loadMetrics(l){return{items:l.items.length||l.loadItems,units:l.items.reduce((s,i)=>s+i.units,0)||l.loadUnits,qty:l.items.reduce((s,i)=>s+i.qty,0)||l.loadQty}}
-async function fetchCsv(url,cacheKey){try{const join=url.includes("?")?"&":"?";const r=await fetch(url+join+"t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error(r.status);const text=await r.text();localStorage.setItem(cacheKey,JSON.stringify({text,time:new Date().toISOString()}));return{text,live:true}}catch(e){const c=JSON.parse(localStorage.getItem(cacheKey)||"null");if(c)return{text:c.text,live:false,time:c.time};throw e}}
-async function refreshAll(){setStatus("Refreshing data…");$("refreshAllBtn").disabled=true;try{const [l,i]=await Promise.all([fetchCsv(CONFIG.loadCsv,"lwh-load-v2"),fetchCsv(CONFIG.inventoryCsv,"lwh-inv-v2")]);state.loadRows=parseCSV(l.text).map(normalizeLoad).filter(x=>x.date||x.pro||x.customer);state.loads=groupLoads(state.loadRows);state.inventory=parseCSV(i.text).map(normalizeInventory).filter(x=>x.lwh||x.item||x.customer);populateOptions();renderAll();setStatus(`${l.live&&i.live?"Live":"Cached"} · ${state.loads.length} loads · ${state.inventory.length} inventory rows`)}catch(e){console.error(e);setStatus("Data unavailable");showDialog("<h2>Unable to load data</h2><p>Confirm both Google Sheets remain published as CSV.</p>")}finally{$("refreshAllBtn").disabled=false}}
+async function fetchWithTimeout(url,options={},timeoutMs=45000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{return await fetch(url,{...options,signal:controller.signal})}
+  finally{clearTimeout(timer)}
+}
+async function fetchCsv(url,cacheKey){
+  const attempts=[
+    url,
+    url+(url.includes("?")?"&":"?")+"cacheBust="+Date.now()
+  ];
+  let lastError=null;
+  for(const attempt of attempts){
+    try{
+      const r=await fetchWithTimeout(attempt,{cache:"no-store",mode:"cors",redirect:"follow"});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      const text=await r.text();
+      if(!text.trim())throw new Error("Empty CSV response");
+      if(/<!doctype html|<html/i.test(text.slice(0,300)))throw new Error("Google returned HTML instead of CSV");
+      localStorage.setItem(cacheKey,JSON.stringify({text,time:new Date().toISOString()}));
+      return{text,live:true,url:attempt};
+    }catch(e){lastError=e}
+  }
+  const cached=JSON.parse(localStorage.getItem(cacheKey)||"null");
+  if(cached?.text)return{text:cached.text,live:false,time:cached.time,error:lastError?.message||"Fetch failed"};
+  throw lastError||new Error("CSV fetch failed");
+}
+async function refreshAll(){
+  setStatus("Refreshing data…");
+  $("refreshAllBtn").disabled=true;
+  const results=await Promise.allSettled([
+    fetchCsv(CONFIG.loadCsv,"lwh-load-v2"),
+    fetchCsv(CONFIG.inventoryCsv,"lwh-inv-v2")
+  ]);
+  const loadResult=results[0],inventoryResult=results[1];
+  const messages=[];
+  if(loadResult.status==="fulfilled"){
+    const l=loadResult.value;
+    state.loadRows=parseCSV(l.text).map(normalizeLoad).filter(x=>x.date||x.pro||x.customer);
+    state.loads=groupLoads(state.loadRows);
+    messages.push(`${l.live?"live":"cached"} loads: ${state.loads.length}`);
+  }else{
+    console.error("Load feed failed:",loadResult.reason);
+    messages.push("load feed failed");
+  }
+  if(inventoryResult.status==="fulfilled"){
+    const i=inventoryResult.value;
+    state.inventory=parseCSV(i.text).map(normalizeInventory).filter(x=>x.lwh||x.item||x.customer);
+    messages.push(`${i.live?"live":"cached"} inventory: ${state.inventory.length}`);
+  }else{
+    console.error("Inventory feed failed:",inventoryResult.reason);
+    messages.push("inventory feed failed");
+  }
+  populateOptions();
+  renderAll();
+  setStatus(messages.join(" · "));
+  if(loadResult.status==="rejected"||inventoryResult.status==="rejected"){
+    const failed=[];
+    if(loadResult.status==="rejected")failed.push(`<li><b>Load Board:</b> ${esc(loadResult.reason?.message||"Failed to fetch")}</li>`);
+    if(inventoryResult.status==="rejected")failed.push(`<li><b>Inventory:</b> ${esc(inventoryResult.reason?.message||"Failed to fetch")}</li>`);
+    showDialog(`<div class="dialog-content"><h2>One data feed could not load</h2><p>The rest of the dashboard will continue working.</p><ul>${failed.join("")}</ul><p>Open each published CSV link directly in this browser to confirm Google returns a download.</p></div>`);
+  }
+  $("refreshAllBtn").disabled=false;
+}
 function setStatus(s){$("dataStatus").textContent=s}
 function settingsLoad(){state.settings={...DEFAULT_SETTINGS,...JSON.parse(localStorage.getItem("lwh-settings-v2")||"{}")};applySettings();fillSettings()}
 function settingsSave(){localStorage.setItem("lwh-settings-v2",JSON.stringify(state.settings));applySettings()}

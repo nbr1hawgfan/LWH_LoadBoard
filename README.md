@@ -48,3 +48,12 @@ The map uses Leaflet and OpenStreetMap tiles. City coordinates are looked up thr
 ## Privacy
 
 Both published Google Sheets CSV feeds are public URLs. Do not include confidential pricing, credentials, private contact information or sensitive customer notes.
+
+
+## Version 2.0.1 loader fix
+
+- Load Board and Inventory feeds load independently.
+- One failed source no longer prevents the entire dashboard from opening.
+- Each CSV is retried using both the plain published URL and a cache-busted URL.
+- Added a 45-second timeout and validation that Google returned CSV rather than an HTML error page.
+- Error messages now identify the failing source.
