@@ -172,8 +172,13 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em}
 .day-load{display:block;width:100%;margin-top:5px;padding:5px 7px;border:0;border-radius:6px;background:var(--surface-2);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-size:.68rem}
 .day-more{width:100%;margin-top:5px;border:1px solid var(--line-strong);background:transparent;color:var(--accent);border-radius:6px;font-family:var(--font-display);font-weight:700;font-size:.72rem;padding:4px}
 
-.city-list-button{display:grid;width:100%;padding:9px 0;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left}
-.city-list-button span{color:var(--muted);font-size:.75rem;font-family:var(--font-data)}
+.city-list-button{display:grid;gap:3px;width:100%;padding:11px 4px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left}
+.city-list-button:hover{background:var(--surface-2)}
+.city-list-button b{font-size:.95rem;color:var(--ink)}
+.city-list-button span{color:#c2c6d1;font-size:.82rem;font-family:var(--font-data)}
+
+.bay-badge{display:inline-flex;align-items:center;padding:8px 16px;margin-bottom:12px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-data);font-weight:700;font-size:1.15rem;letter-spacing:.02em}
+td.bay-cell{color:var(--accent);font-weight:700;font-family:var(--font-data);font-size:.95rem}
 
 /* ---------- inventory ---------- */
 .inventory-filters{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:10px;margin-bottom:14px}

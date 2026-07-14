@@ -148,6 +148,13 @@ Full re-skin based on feedback that the ledger/manifest look read as dated. New 
 - **Themes renamed** to match: Indigo Night (default), Telegram Blue, Spotify Green, Maroon (your original brand color, kept as an option), and **High Contrast** — which stays a genuine light/max-contrast theme, unchanged in spirit from before, specifically so this still works for your 85-year-old owner regardless of which look is trendy for everyone else.
 - Default accent color changed from maroon to indigo (`#6c63ff`) to match; the custom color picker in Settings still works if you want something else.
 
+## Version 2.7.1 — design feedback pass
+
+- **Removed the inventory age color-dot** entirely. Received dates aren't consistently populated in the sheet, so the fresh/aging/stale indicator was often just noise on a "0/—" value. Age is still shown as plain data where available; the traffic-light treatment is gone.
+- **Bay now stands out** as the primary field for inventory lookups, since that's the main real-world use: a colored badge above the item name on cards, a bold accent-colored column in Table view, and a hero badge at the top of the detail dialog — ahead of every other field.
+- **Calendar day view is easier to read**: bigger text and better contrast in the "N more" day-detail popup (previously small, low-contrast muted text).
+- **Pro Number / Bill To Reference now shown per load** in that same day-detail popup, so you don't have to open each load individually just to see which one you're looking for.
+
 ### Labor module
 
 
