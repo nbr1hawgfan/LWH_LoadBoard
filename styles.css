@@ -34,3 +34,51 @@ body.theme-blue{--header:#07182f;--accent:#1b73e8;--accent-soft:#e8f1ff}body.the
 @media(max-width:760px){.mobile-menu{display:block}.brand{min-width:0}.brand-kicker{display:none}.brand strong{font-size:1rem}.top-actions .ghost{display:none}.app-shell{grid-template-columns:1fr}.sidebar{position:fixed;left:-250px;top:70px;z-index:900;width:230px;height:calc(100vh - 70px);transition:.2s}.sidebar.open{left:0}.workspace{padding:10px}.global-filter{position:static;grid-template-columns:1fr 1fr}.global-filter .secondary{grid-column:1/-1}.module-heading{align-items:flex-start;flex-direction:column}.kpi-grid,.kpi-grid.compact{grid-template-columns:repeat(2,1fr)}.dashboard-grid,.analytics-grid,.settings-grid{grid-template-columns:1fr}.span-2{grid-column:auto}.load-grid{grid-template-columns:1fr}.calendar-grid{grid-template-columns:repeat(7,minmax(95px,1fr));overflow:auto}.inventory-filters{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr}}
 
 .subheading{margin-top:28px}.labor-cost{font-variant-numeric:tabular-nums}
+
+/* Leaflet core-layout fallback.
+   Keeps the map functional if the external Leaflet stylesheet is blocked
+   or delayed by the browser/network. */
+.leaflet-container{position:relative;overflow:hidden;outline:0;background:#ddd;-webkit-tap-highlight-color:transparent}
+.leaflet-container .leaflet-pane,
+.leaflet-container .leaflet-tile,
+.leaflet-container .leaflet-marker-icon,
+.leaflet-container .leaflet-marker-shadow,
+.leaflet-container .leaflet-tile-container,
+.leaflet-container .leaflet-pane>svg,
+.leaflet-container .leaflet-pane>canvas,
+.leaflet-container .leaflet-zoom-box{position:absolute;left:0;top:0}
+.leaflet-container .leaflet-map-pane canvas{z-index:100}
+.leaflet-container .leaflet-map-pane svg{z-index:200}
+.leaflet-container .leaflet-tile-pane{z-index:200}
+.leaflet-container .leaflet-overlay-pane{z-index:400}
+.leaflet-container .leaflet-shadow-pane{z-index:500}
+.leaflet-container .leaflet-marker-pane{z-index:600}
+.leaflet-container .leaflet-tooltip-pane{z-index:650}
+.leaflet-container .leaflet-popup-pane{z-index:700}
+.leaflet-container .leaflet-map-pane svg,
+.leaflet-container .leaflet-marker-icon,
+.leaflet-container .leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}
+.leaflet-container .leaflet-tile{visibility:hidden;max-width:none!important;max-height:none!important;width:256px!important;height:256px!important;padding:0!important;margin:0!important;border:0!important}
+.leaflet-container .leaflet-tile-loaded{visibility:inherit}
+.leaflet-container .leaflet-zoom-animated{transform-origin:0 0}
+.leaflet-container .leaflet-zoom-hide{visibility:hidden}
+.leaflet-container .leaflet-interactive{cursor:pointer}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto}
+.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}
+.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}
+.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}
+.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}
+.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}
+.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.4);border-radius:4px}
+.leaflet-bar a{display:block;width:30px;height:30px;line-height:30px;border-bottom:1px solid #ccc;background:#fff;color:#000;text-align:center;text-decoration:none;font:bold 18px Arial}
+.leaflet-bar a:first-child{border-radius:4px 4px 0 0}.leaflet-bar a:last-child{border-bottom:0;border-radius:0 0 4px 4px}
+.leaflet-control-attribution{margin:0;padding:2px 5px;background:rgba(255,255,255,.8);font-size:11px}
+.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}
+.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:10px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.35)}
+.leaflet-popup-content{margin:13px 18px;line-height:1.4}
+.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}
+.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;transform:rotate(45deg);background:#fff;box-shadow:3px 3px 15px rgba(0,0,0,.2)}
+.leaflet-popup-close-button{position:absolute;top:0;right:0;border:0;background:transparent;font-size:20px;color:#555}
+.map-layout{min-width:0;overflow:hidden}
+#shipmentMap{width:100%;max-width:100%;overflow:hidden}
+.map-panel{min-width:0}

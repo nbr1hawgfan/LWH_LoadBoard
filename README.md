@@ -82,3 +82,12 @@ Benefits_21pct, Daily_Actual_Cost.
 - Employee, hours, regular hours, overtime and actual-cost KPIs.
 - Warehouse hours, warehouse cost, employee-type and OT-leader summaries.
 - Full labor detail table.
+
+
+## Version 2.1.1
+
+- Added embedded Leaflet core layout CSS as a fallback when the external stylesheet is blocked or delayed.
+- Prevented map tile images from expanding the page and creating horizontal overflow.
+- Added additional map resize handling after the Map module becomes visible.
+- Inventory age is now marked unavailable when the CSV has neither a received-date nor an age-days column.
+- The 90+ day KPI and age filter no longer assume missing age equals zero.
