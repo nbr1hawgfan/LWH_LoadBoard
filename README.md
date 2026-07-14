@@ -164,6 +164,13 @@ Full re-skin based on feedback that the ledger/manifest look read as dated. New 
 - Inventory detail view now has an **"All Sheet Data"** section that automatically lists any column from the CSV with a value, that isn't already one of the named fields above it. Built off the raw row data already kept in memory, so it needs no configuration and no knowledge of your exact column list — Nissan's extra `Unique4`/`Unique5`/etc. fields (or whatever a given customer group uses) show up automatically when populated, and stay invisible for records that don't use them.
 - Labels in that section use the raw column header text as-is (e.g. "Unique4"). If you want friendlier labels for specific columns — e.g. "Unique4" relabeled as "Container Number" — let me know what each one means and I can map them to proper names instead of the raw header.
 
+## Version 2.8.0 — light/dark appearance toggle
+
+- Added a real **Light** appearance alongside the current dark one — same component system (rounded cards, soft shadows, colored status dots), just a clean white/light-gray surface instead of near-black. This is separate from "High Contrast," which stays as its own distinct maximum-accessibility mode.
+- **Quick toggle button in the top bar** switches instantly between Light and Dark — no need to dig into Settings for this one. Settings also has a matching "Appearance" dropdown for anyone who prefers to set it there.
+- Appearance (light/dark) and Theme (accent color: Indigo/Blue/Green/Maroon/High Contrast) are independent settings now — pick any accent color with either light or dark, except High Contrast, which is a self-contained look on its own regardless of the toggle.
+- The choice is saved per-browser (same as every other setting), so different people using the same shared computer would each need to set their own preference once.
+
 ### Labor module
 
 
