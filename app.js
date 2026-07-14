@@ -3,7 +3,7 @@ const CONFIG={
   loadCsv:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTgw11TS3xBI37HrqoJmJSI1ZSy5mxhT6-9BBUzr3jj9119oUZwAIAI-caD4W3m0SwjQdE7Xd4Pazf_/pub?output=csv",
   inventoryCsv:"https://docs.google.com/spreadsheets/d/e/2PACX-1vR88eoG2Hhmq_JCsS_jZMnBiTWlcmehB4i0A5Z6BXZ2oykJ0KqGB6IhrZc0Tr5l5ZOYxtuy8OffpPL-/pub?output=csv",
   laborCsv:"https://docs.google.com/spreadsheets/d/e/2PACX-1vRihZPpC8D0OvPHt44DZaH9d5SiooI2lPczdtw6vtApjEC5eKH_JC8wb3ds-IC4OByZOhwIDRYybCzJ/pub?gid=0&single=true&output=csv",
-  version:"2.5.0",
+  version:"2.5.1",
   timezone:"America/Chicago"
 };
 const DEFAULT_SETTINGS={theme:"executive",accent:"#7a1230",density:"comfortable",textSize:"normal",defaultModule:"dashboard",warehouse:"",weather:true,weatherLocation:"fort-smith",seconds:true};
@@ -201,21 +201,31 @@ function detail(a,b){return`<div class="detail"><span>${a}</span><b>${esc(b||"�
 function showDialog(html){$("dialogBody").innerHTML=html;$("detailDialog").showModal()}
 
 /* ---------- scan-to-lookup ---------- */
-let scanStream=null,scanRAF=null;
-function stopCameraScan(){if(scanRAF)cancelAnimationFrame(scanRAF);scanRAF=null;if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}}
+let html5QrCode=null;
+function scanFormats(){return(typeof Html5QrcodeSupportedFormats!=="undefined")?[Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.CODE_93,Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.QR_CODE,Html5QrcodeSupportedFormats.ITF,Html5QrcodeSupportedFormats.CODABAR]:undefined}
+async function stopCameraScan(){if(!html5QrCode)return;const inst=html5QrCode;html5QrCode=null;try{await inst.stop();inst.clear()}catch(e){}const reader=$("scannerReader");if(reader)reader.innerHTML=""}
 async function startCameraScan(){
-  const video=$("scanVideo");
+  if(typeof Html5Qrcode==="undefined"){$("scanResults").innerHTML='<p class="muted">Camera scanner library failed to load — check your connection, or use a handheld scanner / type the code above.</p>';return}
+  $("scanResults").innerHTML="";
+  $("scannerStatus").textContent="Starting camera…";
+  html5QrCode=new Html5Qrcode("scannerReader");
+  const config={fps:10,qrbox:{width:260,height:140},formatsToSupport:scanFormats()};
+  const onSuccess=code=>{try{navigator.vibrate&&navigator.vibrate(70)}catch(e){}stopCameraScan();runScan(code)};
   try{
-    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-    video.srcObject=scanStream;video.classList.add("active");await video.play();
-    const detector=new BarcodeDetector({formats:["code_128","code_39","codabar","itf","ean_13","ean_8","upc_a","upc_e","qr_code"]});
-    const tick=async()=>{
-      if(!scanStream)return;
-      try{const codes=await detector.detect(video);if(codes.length){const v=codes[0].rawValue;stopCameraScan();video.classList.remove("active");runScan(v);return}}catch(e){}
-      scanRAF=requestAnimationFrame(tick);
-    };
-    scanRAF=requestAnimationFrame(tick);
-  }catch(e){console.error(e);$("scanResults").innerHTML='<p class="muted">Camera access was blocked or unavailable. A handheld scanner or manual entry above both still work.</p>'}
+    const devices=await Html5Qrcode.getCameras();
+    if(!devices||!devices.length)throw new Error("No camera found");
+    const back=devices.find(d=>/back|rear|environment/i.test(d.label))||devices[devices.length-1];
+    $("scannerStatus").textContent="Point the camera at a barcode or QR code.";
+    await html5QrCode.start(back.id,config,onSuccess,()=>{});
+  }catch(err){
+    try{
+      $("scannerStatus").textContent="Point the camera at a barcode or QR code.";
+      await html5QrCode.start({facingMode:"environment"},config,onSuccess,()=>{});
+    }catch(err2){
+      $("scanResults").innerHTML=`<p class="muted">Camera access failed: ${esc(err2.message||"unknown error")}. Use a handheld scanner or type the code above.</p>`;
+      stopCameraScan();
+    }
+  }
 }
 function runScan(raw){
   const code=clean(raw);
@@ -225,7 +235,7 @@ function runScan(raw){
   const total=loadMatches.length+invMatches.length;
   if(total===1){if(loadMatches.length)openLoad(loadMatches[0].key);else openInventoryItem(invMatches[0].idx);return}
   if(total===0){
-    $("scanResults").innerHTML=`<p class="muted">No exact match for “${esc(code)}”. <button class="text-button" id="scanSearchFallback">Search for it instead</button></p>`;
+    $("scanResults").innerHTML=`<p class="muted">No exact match for "${esc(code)}". <button class="text-button" id="scanSearchFallback">Search for it instead</button></p>`;
     $("scanSearchFallback").onclick=()=>{stopCameraScan();$("detailDialog").close();$("globalSearch").value=code;renderAll()};
     return;
   }
@@ -236,15 +246,16 @@ function runScan(raw){
   $("scanResults").querySelectorAll("[data-inv]").forEach(b=>b.onclick=()=>openInventoryItem(+b.dataset.inv));
 }
 function openScan(){
-  const cameraSupported="BarcodeDetector"in window;
   showDialog(`<div class="dialog-content"><h2>Scan</h2><p class="muted">Scan with a handheld scanner (it types like a keyboard — just scan and it'll jump straight to the record), or type a Pro Number, LWH ID, Item, or Lot below.</p>
     <input id="scanInput" class="scan-input" type="text" autocomplete="off" placeholder="Scan or type a code, then press Enter">
-    ${cameraSupported?'<button id="scanCameraBtn" class="secondary">Use Camera</button><video id="scanVideo" class="scan-video" playsinline muted></video>':'<p class="muted">Camera scanning isn\u2019t available in this browser — a handheld scanner or manual entry above both work fine.</p>'}
+    <button id="scanCameraBtn" class="secondary">Use Camera</button>
+    <div id="scannerReader" class="scanner-reader"></div>
+    <p id="scannerStatus" class="muted scanner-status"></p>
     <div id="scanResults"></div></div>`);
   const input=$("scanInput");
   input.focus();
   input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();const v=input.value;input.value="";runScan(v)}});
-  if(cameraSupported)$("scanCameraBtn").onclick=startCameraScan;
+  $("scanCameraBtn").onclick=startCameraScan;
 }
 function navigate(name){document.querySelectorAll(".module").forEach(m=>m.classList.toggle("active",m.id===name+"Module"));document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.module===name));$("sidebar").classList.remove("open");if(name==="map")renderMap();localStorage.setItem("lwh-last-module",name)}
 function updateClock(){const now=new Date(),opts={hour:"numeric",minute:"2-digit",timeZone:CONFIG.timezone};if(state.settings.seconds)opts.second="2-digit";$("currentDate").textContent=new Intl.DateTimeFormat("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric",timeZone:CONFIG.timezone}).format(now);$("currentTime").textContent=new Intl.DateTimeFormat("en-US",opts).format(now)}

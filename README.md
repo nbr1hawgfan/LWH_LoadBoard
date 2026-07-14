@@ -123,6 +123,13 @@ Benefits_21pct, Daily_Actual_Cost.
 - A scan is matched exactly against Pro Number, LWH ID, Item, and Lot across whatever's currently loaded. One match jumps straight to that record's detail view; multiple matches show a short pick list; no match offers to drop the code into the search box instead.
 - **Scope note:** this is a read-only lookup accelerator over the CSV data already in the browser — it does not write anything back to birdsEye. A true scan-driven bay-move (or other write-capable scanning) needs your IT company's backend and is tracked separately from this app.
 
+## Version 2.5.1 — camera scanning ported from the Toolkit (iPhone-reliable)
+
+- Replaced the native `BarcodeDetector` camera scan (Chrome/Android only) with **html5-qrcode** (pinned to `2.3.8` via unpkg), the same library your Warehouse Toolkit switched to after finding the native API unreliable on iPhone. Camera scanning now works the same way, and about as reliably, in both apps.
+- The library is version-pinned (`@2.3.8` is an immutable URL on unpkg, unlike `@latest`), so this doesn't carry the same staleness risk as the earlier Leaflet CDN issue.
+- Camera picks the rear-facing camera by device label first, falls back to `facingMode: environment` if that lookup fails — same order the Toolkit uses.
+- Handheld-scanner and manual typing continue to work everywhere regardless of camera support, same as before.
+
 ### Labor module
 
 
