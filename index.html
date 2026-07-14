@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#14161a">
+  <meta name="theme-color" content="#0a0b0e">
   <meta name="description" content="Logistics Warehouse Operations Dashboard">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.5.1">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=2.7.0">
   <title>LWH Operations Dashboard</title>
 </head>
 <body>
@@ -44,14 +44,13 @@
         <button class="nav-item active" data-module="dashboard"><span>⌂</span>Dashboard</button>
         <button class="nav-item" data-module="loads"><span>⇄</span>Load Board</button>
         <button class="nav-item" data-module="calendar"><span>□</span>Calendar</button>
-        <button class="nav-item" data-module="map"><span>◎</span>Shipment Map</button>
         <button class="nav-item" data-module="inventory"><span>▦</span>Inventory</button>
         <button class="nav-item" data-module="labor"><span>◫</span>Labor</button>
         <button class="nav-item" data-module="analytics"><span>▥</span>Analytics</button>
         <button class="nav-item" data-module="settings"><span>⚙</span>Settings</button>
       </nav>
       <div class="sidebar-footer">
-        <strong>Version 2.5.1</strong>
+        <strong>Version 2.7.0</strong>
         <span id="dataStatus">Waiting for data</span>
       </div>
     </aside>
@@ -85,7 +84,7 @@
             <div id="inventorySnapshot"></div>
           </article>
           <article class="card span-2">
-            <div class="card-heading"><div><span class="eyebrow">GEOGRAPHY</span><h2>Top Shipment Cities</h2></div><button class="text-button" data-go="map">Open map</button></div>
+            <div class="card-heading"><div><span class="eyebrow">GEOGRAPHY</span><h2>Top Shipment Cities</h2></div><button class="text-button" data-go="analytics">View all</button></div>
             <div id="citySnapshot"></div>
           </article>
         </div>
@@ -105,23 +104,6 @@
         </div>
         <h2 id="calendarTitle" class="calendar-title"></h2>
         <div id="calendarGrid" class="calendar-grid"></div>
-      </section>
-
-      <section id="mapModule" class="module">
-        <div class="module-heading"><div><span class="eyebrow">SHIPMENT GEOGRAPHY</span><h1>Shipment Map</h1></div>
-          <div class="map-heading-controls">
-            <div class="segmented"><button class="active" data-map-range="today">Today</button><button data-map-range="7">Next 7 Days</button><button data-map-range="31">Next 31</button><button data-map-range="all">All</button></div>
-            <div class="map-legend"><span class="dot small"></span><span>Fewer loads</span><span class="dot large"></span><span>More loads</span></div>
-          </div>
-        </div>
-        <div class="map-layout">
-          <div id="shipmentMap"></div>
-          <aside class="card map-panel">
-            <h2>Visible Cities</h2>
-            <p class="muted">Select a city to highlight it on the map, or open its loads from the Load Board.</p>
-            <div id="mapCityList"></div>
-          </aside>
-        </div>
       </section>
 
       <section id="inventoryModule" class="module">
@@ -175,6 +157,7 @@
           <article class="card"><h2>Inbound vs Outbound</h2><div id="analyticsDirection"></div></article>
           <article class="card"><h2>Top Customers</h2><div id="analyticsCustomers"></div></article>
           <article class="card"><h2>Top Items</h2><div id="analyticsItems"></div></article>
+          <article class="card"><h2>Top Cities</h2><div id="analyticsCities"></div></article>
         </div>
       </section>
 
@@ -182,13 +165,13 @@
         <div class="module-heading"><div><span class="eyebrow">PERSONALIZE</span><h1>Settings</h1></div></div>
         <div class="settings-grid">
           <article class="card setting-card"><h2>Appearance</h2>
-            <label><span>Theme</span><select id="settingTheme"><option value="executive">Executive Black</option><option value="blue">Warehouse Blue</option><option value="green">Forest</option><option value="crimson">Crimson</option><option value="contrast">High Contrast</option></select></label>
-            <label><span>Accent color</span><input id="settingAccent" type="color" value="#7a1230"></label>
+            <label><span>Theme</span><select id="settingTheme"><option value="executive">Indigo Night</option><option value="blue">Telegram Blue</option><option value="green">Spotify Green</option><option value="crimson">Maroon</option><option value="contrast">High Contrast</option></select></label>
+            <label><span>Accent color</span><input id="settingAccent" type="color" value="#6c63ff"></label>
             <label><span>Density</span><select id="settingDensity"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
             <label><span>Text size</span><select id="settingTextSize"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></label>
           </article>
           <article class="card setting-card"><h2>Startup</h2>
-            <label><span>Default module</span><select id="settingDefaultModule"><option value="dashboard">Dashboard</option><option value="loads">Load Board</option><option value="calendar">Calendar</option><option value="map">Shipment Map</option><option value="inventory">Inventory</option><option value="labor">Labor</option></select></label>
+            <label><span>Default module</span><select id="settingDefaultModule"><option value="dashboard">Dashboard</option><option value="loads">Load Board</option><option value="calendar">Calendar</option><option value="inventory">Inventory</option><option value="labor">Labor</option></select></label>
             <label><span>Default warehouse</span><select id="settingWarehouse"><option value="">All warehouses</option></select></label>
           </article>
           <article class="card setting-card"><h2>Header</h2>
@@ -210,7 +193,6 @@
   <dialog id="detailDialog"><button id="closeDialog" class="dialog-close">×</button><div id="dialogBody"></div></dialog>
 
   <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="us-map-data.js?v=2.5.1"></script>
-  <script src="app.js?v=2.5.1"></script>
+  <script src="app.js?v=2.7.0"></script>
 </body>
 </html>

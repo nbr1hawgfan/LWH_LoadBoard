@@ -130,6 +130,24 @@ Benefits_21pct, Daily_Actual_Cost.
 - Camera picks the rear-facing camera by device label first, falls back to `facingMode: environment` if that lookup fails — same order the Toolkit uses.
 - Handheld-scanner and manual typing continue to work everywhere regardless of camera support, same as before.
 
+## Version 2.6.0 — removed the Shipment Map
+
+- Pulled the Shipment Map module out entirely — after three passes (Leaflet/OSM, then a custom flat SVG projection), it kept being more trouble than it was worth for a nice-to-have. Removed `us-map-data.js`, the map nav item, and all related code.
+- "Top Cities" moved to the Analytics tab as a ranked bar list (reusing data that was always loaded, no geocoding involved) so you don't lose the geographic overview, just the literal map rendering.
+- The Dashboard's "Top Shipment Cities" panel is unchanged and unaffected — it never depended on the map or geocoding.
+
+## Version 2.7.0 — visual redesign: dark control room
+
+Full re-skin based on feedback that the ledger/manifest look read as dated. New direction: the always-on dark apps people already stare at daily (Discord, Spotify, Telegram) — near-black canvas, one vivid accent (indigo, was blue), generous rounded corners, soft glow shadows instead of hairlines.
+
+- **Typography**: swapped the condensed industrial display face for Space Grotesk (bolder, rounder, more "app" than "manifest"). Dropped uppercase/heavy letter-spacing from buttons, nav items, and status pills — kept it only on small structural labels (KPI labels, table headers) where it's still doing real work.
+- **Signature element — status dots carry real meaning, not decoration**: a colored pip on the active sidebar item (grows like a presence indicator), a green/indigo dot on each Load Board card showing inbound vs. outbound at a glance, a green/amber/red dot on every inventory Age value (fresh / aging / 90+ days) in the card, table, and detail view, and a live-status dot next to the data-freshness line in the sidebar footer that actually reflects whether data is live, refreshing, or unavailable.
+- **KPI cards**: back to individual rounded cards (the joined ledger-strip look from the last redesign is gone) with bold mono numerals.
+- **Buttons & controls**: fully rounded pill buttons and segmented controls, dark elevated surfaces, no more small-caps everywhere.
+- **Dialogs**: blurred dark backdrop, rounded modal, no more hard edges.
+- **Themes renamed** to match: Indigo Night (default), Telegram Blue, Spotify Green, Maroon (your original brand color, kept as an option), and **High Contrast** — which stays a genuine light/max-contrast theme, unchanged in spirit from before, specifically so this still works for your 85-year-old owner regardless of which look is trendy for everyone else.
+- Default accent color changed from maroon to indigo (`#6c63ff`) to match; the custom color picker in Settings still works if you want something else.
+
 ### Labor module
 
 
