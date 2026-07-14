@@ -57,3 +57,28 @@ Both published Google Sheets CSV feeds are public URLs. Do not include confident
 - Each CSV is retried using both the plain published URL and a cache-busted URL.
 - Added a 45-second timeout and validation that Google returned CSV rather than an HTML error page.
 - Error messages now identify the failing source.
+
+
+## Version 2.1.0
+
+### Data architecture
+- Removed CSV data caching from localStorage.
+- Only user settings and small city-coordinate lookups remain stored locally.
+- Load Board, Inventory, and Labor feeds load independently into memory.
+- One failed feed does not stop other modules.
+
+### Labor source
+https://docs.google.com/spreadsheets/d/e/2PACX-1vRihZPpC8D0OvPHt44DZaH9d5SiooI2lPczdtw6vtApjEC5eKH_JC8wb3ds-IC4OByZOhwIDRYybCzJ/pub?gid=0&single=true&output=csv
+
+Recognized columns:
+Work_Date, Day_Of_Week, Employee_Name, Employee_Type,
+Time_Clock_Location, Warehouse_Code, Total_Hours, Regular_Hours,
+Overtime_Hours, Hourly_Pay_Rate, Daily_Base_Wages,
+Benefits_21pct, Daily_Actual_Cost.
+
+### Labor module
+- Today, last 7 days, current Sunday–Saturday workweek, last 31 days, or all.
+- Employee type, employee name, clock location, warehouse and minimum-OT filters.
+- Employee, hours, regular hours, overtime and actual-cost KPIs.
+- Warehouse hours, warehouse cost, employee-type and OT-leader summaries.
+- Full labor detail table.

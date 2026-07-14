@@ -41,11 +41,12 @@
         <button class="nav-item" data-module="calendar"><span>□</span>Calendar</button>
         <button class="nav-item" data-module="map"><span>◎</span>Shipment Map</button>
         <button class="nav-item" data-module="inventory"><span>▦</span>Inventory</button>
+        <button class="nav-item" data-module="labor"><span>◫</span>Labor</button>
         <button class="nav-item" data-module="analytics"><span>▥</span>Analytics</button>
         <button class="nav-item" data-module="settings"><span>⚙</span>Settings</button>
       </nav>
       <div class="sidebar-footer">
-        <strong>Version 2.0.1</strong>
+        <strong>Version 2.1.0</strong>
         <span id="dataStatus">Waiting for data</span>
       </div>
     </aside>
@@ -129,6 +130,35 @@
         <div id="inventoryResults"></div>
       </section>
 
+
+      <section id="laborModule" class="module">
+        <div class="module-heading">
+          <div><span class="eyebrow">WORKFORCE COST & HOURS</span><h1>Labor</h1></div>
+          <div class="segmented">
+            <button class="active" data-labor-range="today">Today</button>
+            <button data-labor-range="7">Last 7 Days</button>
+            <button data-labor-range="week">This Workweek</button>
+            <button data-labor-range="31">Last 31 Days</button>
+            <button data-labor-range="all">All</button>
+          </div>
+        </div>
+        <div id="laborKpis" class="kpi-grid compact"></div>
+        <div class="inventory-filters card">
+          <label><span>Employee type</span><select id="laborEmployeeType"><option value="">All employee types</option></select></label>
+          <label><span>Employee</span><input id="laborEmployee" placeholder="Employee name"></label>
+          <label><span>Time-clock location</span><select id="laborClockLocation"><option value="">All clock locations</option></select></label>
+          <label><span>Minimum OT hours</span><input id="laborMinOt" type="number" min="0" step="0.25" placeholder="0"></label>
+        </div>
+        <div class="analytics-grid">
+          <article class="card"><h2>Hours by Warehouse</h2><div id="laborWarehouseChart"></div></article>
+          <article class="card"><h2>Actual Cost by Warehouse</h2><div id="laborCostChart"></div></article>
+          <article class="card"><h2>Employee Type</h2><div id="laborTypeChart"></div></article>
+          <article class="card"><h2>Overtime Leaders</h2><div id="laborOtLeaders"></div></article>
+        </div>
+        <div class="module-heading subheading"><div><span class="eyebrow">DETAIL</span><h2>Labor Records</h2></div></div>
+        <div id="laborTable"></div>
+      </section>
+
       <section id="analyticsModule" class="module">
         <div class="module-heading"><div><span class="eyebrow">TRENDS</span><h1>Analytics</h1></div></div>
         <div class="analytics-grid">
@@ -149,7 +179,7 @@
             <label><span>Text size</span><select id="settingTextSize"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></label>
           </article>
           <article class="card setting-card"><h2>Startup</h2>
-            <label><span>Default module</span><select id="settingDefaultModule"><option value="dashboard">Dashboard</option><option value="loads">Load Board</option><option value="calendar">Calendar</option><option value="map">Shipment Map</option><option value="inventory">Inventory</option></select></label>
+            <label><span>Default module</span><select id="settingDefaultModule"><option value="dashboard">Dashboard</option><option value="loads">Load Board</option><option value="calendar">Calendar</option><option value="map">Shipment Map</option><option value="inventory">Inventory</option><option value="labor">Labor</option></select></label>
             <label><span>Default warehouse</span><select id="settingWarehouse"><option value="">All warehouses</option></select></label>
           </article>
           <article class="card setting-card"><h2>Header</h2>
@@ -160,6 +190,7 @@
           <article class="card setting-card"><h2>Data</h2>
             <p><strong>Load feed</strong><br><span class="muted">Published Google Sheets CSV</span></p>
             <p><strong>Inventory feed</strong><br><span class="muted">Published Google Sheets CSV</span></p>
+            <p><strong>Labor feed</strong><br><span class="muted">Published Google Sheets CSV</span></p>
             <button id="resetSettings" class="danger">Reset settings</button>
           </article>
         </div>
