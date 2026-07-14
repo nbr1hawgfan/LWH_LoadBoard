@@ -86,7 +86,46 @@ Benefits_21pct, Daily_Actual_Cost.
 - Tables now have zebra striping and a hover highlight for easier row-tracking in Labor and Inventory table views.
 - No functional or data changes — this release only touches `styles.css`, the topbar markup in `index.html`, and font/version metadata.
 
+## Version 2.3.0 — shipment map rewrite + refreshed icons
+
+- Replaced the Leaflet/OpenStreetMap tile map with a self-contained flat SVG map of the continental US. State outlines are bundled locally in `us-map-data.js` (no tile server, no map library, nothing that depends on the container being a stable pixel size at the instant it initializes — which was the likely cause of the map occasionally rendering incorrectly).
+- Cities are plotted as proportional dots sized by shipment volume (more loads = bigger dot), colored in the brand accent, matching the flatter design language instead of colorful OSM tiles and rounded Leaflet zoom controls.
+- Removed the "Group nearby cities" and "Fit All" controls — with the whole map always in view there's nothing to fit or cluster. Added a simple dot-size legend instead.
+- City geocoding still uses the free Open-Meteo geocoding API (unchanged, cached in the browser as before) — only the rendering layer changed.
+- Alaska, Hawaii, and Puerto Rico aren't drawn on the map (kept the projection to the continental US for a clean, undistorted layout); shipments to those areas still show up in the Visible Cities list.
+- Regenerated `icon-192.png`, `icon-512.png`, and `icon-512-maskable.png` so the "OPERATIONS" text uses the new maroon brand accent instead of the old blue.
+
+## Version 2.3.1 — map range + deploy-safety fix
+
+- **Root cause of the console errors after the last deploy:** GitHub Pages' CDN doesn't invalidate every file at exactly the same moment after a push. For a few minutes after deploying, it's possible for the browser to fetch a freshly-updated `app.js` alongside a still-stale cached `index.html` (or vice versa). That's what produced both the leftover Leaflet integrity error (from the old HTML) and the `US_STATES is not defined` error (new `app.js` running without the old HTML knowing to load `us-map-data.js` first).
+- **Fix:** `styles.css`, `app.js`, and `us-map-data.js` are now loaded with a `?v=2.3.1` version query string in `index.html`, and the service worker's precache list matches. Bumping that version string on every future release forces browsers to treat it as a brand-new file rather than reusing a stale cached copy — this whole class of mismatch shouldn't recur.
+- `renderMap()` now checks that `us-map-data.js` actually loaded before using it, and shows a plain-language message in the map panel instead of throwing an error if it didn't.
+- The Shipment Map now defaults to **Today** (same Today / Next 7 Days / Next 31 / All range control as the Load Board), instead of plotting every load ever received. This makes the map load faster (far fewer cities to geocode) and gives a cleaner day-to-day snapshot; switch ranges any time to see more.
+- If you still see the Leaflet error after this update: do a hard refresh (Ctrl+Shift+R / Cmd+Shift+R), and if it persists, open the same URL in a private/incognito window to confirm it's a caching artifact rather than a real file problem. The "Banner not shown" message in the console is expected — that's Chrome just noting that we're deferring the install prompt to our own Install button, not an error.
+
+## Version 2.4.0 — inventory data & aging filter
+
+- Removed the "30+ / 60+ / 90+ / 180+ days" aging dropdown from the Inventory filters. (Open item for what replaces it — see conversation.)
+- Inventory cards and table rows now open a full detail dialog (same pattern as Load Board) showing every field from the sheet: LWH ID, Warehouse, Customer, Customer ID, Bay, Lot, Units, Qty, Received date, Age, Receipt Reference, **Vendor**, **Comments**, and the two spare reference columns (Unique2/Unique3) if your sheet has them populated.
+- Table view now also shows a Vendor and Received Date column.
+- Fixed a data bug: `Customer ID` was silently falling back to the `Comments` column when a dedicated Customer ID column wasn't found, which meant comment text could show up mislabeled as a customer ID. It's now its own field.
+- Inventory filters are down to Customer / Item / Bay (Age removed as above).
+
+## Version 2.5.0 — Received date range filter + Scan-to-lookup
+
+### Inventory
+- Replaced the removed age-bucket filter with a proper **Received from / Received to** date range.
+
+### Scan
+- New **Scan** button in the top bar. Two ways to use it:
+  - **Handheld scanner** (or any USB/Bluetooth scanner that types like a keyboard): click Scan, then scan — it acts like typing into the box and pressing Enter, no camera permission needed. This works on any device.
+  - **Camera** (Chrome/Edge/most Android browsers, via the browser's native barcode API): tap "Use Camera" and point it at a barcode or QR code. Not currently supported in Safari/iOS — the manual/handheld-scanner path always works there instead.
+- A scan is matched exactly against Pro Number, LWH ID, Item, and Lot across whatever's currently loaded. One match jumps straight to that record's detail view; multiple matches show a short pick list; no match offers to drop the code into the search box instead.
+- **Scope note:** this is a read-only lookup accelerator over the CSV data already in the browser — it does not write anything back to birdsEye. A true scan-driven bay-move (or other write-capable scanning) needs your IT company's backend and is tracked separately from this app.
+
 ### Labor module
+
+
 - Today, last 7 days, current Sunday–Saturday workweek, last 31 days, or all.
 - Employee type, employee name, clock location, warehouse and minimum-OT filters.
 - Employee, hours, regular hours, overtime and actual-cost KPIs.

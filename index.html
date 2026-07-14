@@ -11,9 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIINfQ3yn5MZJOZAuZEMD/2Ss1pt8OMTnA4=" crossorigin="">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2.5.0">
   <title>LWH Operations Dashboard</title>
 </head>
 <body>
@@ -35,6 +33,7 @@
     </div>
     <div class="top-actions">
       <button id="installBtn" class="ghost" hidden>Install</button>
+      <button id="scanBtn" class="secondary">Scan</button>
       <button id="refreshAllBtn" class="primary">Refresh Data</button>
     </div>
   </header>
@@ -52,7 +51,7 @@
         <button class="nav-item" data-module="settings"><span>⚙</span>Settings</button>
       </nav>
       <div class="sidebar-footer">
-        <strong>Version 2.2.0</strong>
+        <strong>Version 2.5.0</strong>
         <span id="dataStatus">Waiting for data</span>
       </div>
     </aside>
@@ -110,13 +109,16 @@
 
       <section id="mapModule" class="module">
         <div class="module-heading"><div><span class="eyebrow">SHIPMENT GEOGRAPHY</span><h1>Shipment Map</h1></div>
-          <div class="map-options"><label><input id="mapClusterToggle" type="checkbox" checked> Group nearby cities</label><button id="fitMapBtn" class="secondary">Fit All</button></div>
+          <div class="map-heading-controls">
+            <div class="segmented"><button class="active" data-map-range="today">Today</button><button data-map-range="7">Next 7 Days</button><button data-map-range="31">Next 31</button><button data-map-range="all">All</button></div>
+            <div class="map-legend"><span class="dot small"></span><span>Fewer loads</span><span class="dot large"></span><span>More loads</span></div>
+          </div>
         </div>
         <div class="map-layout">
           <div id="shipmentMap"></div>
           <aside class="card map-panel">
             <h2>Visible Cities</h2>
-            <p class="muted">Select a city marker to review its loads or filter the Load Board.</p>
+            <p class="muted">Select a city to highlight it on the map, or open its loads from the Load Board.</p>
             <div id="mapCityList"></div>
           </aside>
         </div>
@@ -131,7 +133,8 @@
           <label><span>Customer</span><select id="inventoryCustomer"><option value="">All customers</option></select></label>
           <label><span>Item</span><input id="inventoryItem" placeholder="Item number"></label>
           <label><span>Bay</span><input id="inventoryBay" placeholder="Bay name"></label>
-          <label><span>Age</span><select id="inventoryAge"><option value="">All ages</option><option value="30">30+ days</option><option value="60">60+ days</option><option value="90">90+ days</option><option value="180">180+ days</option></select></label>
+          <label><span>Received from</span><input id="inventoryReceivedFrom" type="date"></label>
+          <label><span>Received to</span><input id="inventoryReceivedTo" type="date"></label>
         </div>
         <div id="inventoryResults"></div>
       </section>
@@ -206,8 +209,7 @@
 
   <dialog id="detailDialog"><button id="closeDialog" class="dialog-close">×</button><div id="dialogBody"></div></dialog>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="app.js"></script>
+  <script src="us-map-data.js?v=2.5.0"></script>
+  <script src="app.js?v=2.5.0"></script>
 </body>
 </html>

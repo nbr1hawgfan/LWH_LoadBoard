@@ -156,19 +156,31 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em}
 
 /* ---------- map ---------- */
 .map-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px}
-#shipmentMap{height:70vh;min-height:520px;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);background:#ddd}
+#shipmentMap{height:70vh;min-height:520px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);background:var(--surface);padding:14px}
+#shipmentMap svg{width:100%;height:100%}
+.state{fill:var(--surface-2);stroke:var(--line-strong);stroke-width:1}
+.city-dot{fill:var(--accent);fill-opacity:.82;stroke:var(--surface);stroke-width:1.4;cursor:pointer;transition:fill-opacity .15s}
+.city-dot:hover{fill-opacity:1}
+.city-dot.pulse{animation:cityPulse 1s ease-out 1}
+@keyframes cityPulse{0%{stroke-width:1.4}40%{stroke:var(--accent);stroke-width:6;fill-opacity:1}100%{stroke-width:1.4}}
+.map-legend{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.map-heading-controls{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.map-legend .dot{display:inline-block;border-radius:50%;background:var(--accent);opacity:.82}
+.map-legend .dot.small{width:6px;height:6px}
+.map-legend .dot.large{width:16px;height:16px}
 .map-panel{max-height:70vh;overflow:auto}
 .city-list-button{display:grid;width:100%;padding:9px 0;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left}
 .city-list-button span{color:var(--muted);font-size:.75rem;font-family:var(--font-data)}
 
 /* ---------- inventory ---------- */
-.inventory-filters{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.inventory-filters{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:10px;margin-bottom:14px}
 .inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.inventory-card{border-left:4px solid var(--accent)}
+.inventory-card{border-left:4px solid var(--accent);cursor:pointer}
 .inventory-card h3{margin-bottom:4px;font-size:1.02rem}
 .inventory-detail{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:10px}
 .inventory-detail span{font-family:var(--font-display);font-size:.68rem;color:var(--muted);font-weight:700;letter-spacing:.03em;text-transform:uppercase}
 .inventory-detail b{display:block;font-family:var(--font-data);font-weight:600}
+tbody tr[data-inv-idx]{cursor:pointer}
 
 /* ---------- tables ---------- */
 .table-wrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
@@ -200,6 +212,13 @@ dialog::backdrop{background:rgba(20,22,26,.55)}
 .detail b{font-family:var(--font-data);font-weight:600}
 .item-row{display:grid;grid-template-columns:1fr 80px 100px;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .item-row b{font-family:var(--font-data);font-weight:600}
+
+/* ---------- scan ---------- */
+.scan-input{width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:4px;font-family:var(--font-data);font-size:1.05rem;margin-bottom:12px;background:var(--surface-2);color:var(--ink)}
+.scan-video{display:none;width:100%;border-radius:6px;margin-bottom:12px;background:#111}
+.scan-video.active{display:block}
+.scan-result-item{display:grid;width:100%;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left}
+.scan-result-item span{color:var(--muted);font-size:.75rem;font-family:var(--font-data)}
 
 /* ---------- themes ---------- */
 body.theme-blue{--header:#0b1b2e;--accent:#1b5fb0;--accent-soft:#e7effa}
