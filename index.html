@@ -18,9 +18,25 @@
       <h1>Load Board</h1>
       <div id="syncStatus" class="sync-status">Loading published schedule…</div>
     </div>
-    <div class="header-actions">
-      <button id="installBtn" class="button secondary" hidden>Install App</button>
-      <button id="refreshBtn" class="button">Refresh</button>
+    <div class="header-right">
+      <div class="live-panels">
+        <div class="live-panel clock-panel">
+          <span id="currentDate">Loading date…</span>
+          <strong id="currentTime">--:-- --</strong>
+        </div>
+        <div class="live-panel weather-panel">
+          <select id="weatherLocation" aria-label="Weather location">
+            <option value="fort-smith">Fort Smith, AR</option>
+            <option value="dallas">Dallas, TX</option>
+          </select>
+          <strong id="weatherNow">Weather loading…</strong>
+          <span id="weatherDetail"></span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="installBtn" class="button secondary" hidden>Install App</button>
+        <button id="refreshBtn" class="button">Refresh</button>
+      </div>
     </div>
   </header>
 
@@ -58,6 +74,11 @@
           <option value="all">All published rows</option>
         </select>
       </label>
+      <label>
+        <span>Specific date</span>
+        <input id="exactDateFilter" type="date">
+      </label>
+      <button id="clearFilters" class="clear-filter" type="button">Clear filters</button>
     </section>
 
     <section id="kpis" class="kpi-grid"></section>

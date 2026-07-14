@@ -26,3 +26,15 @@ are grouped into one load card.
 
 A sheet published to the web is publicly accessible. Exclude confidential pricing,
 credentials, private contact information, and sensitive notes.
+
+
+## Version 1.1 additions
+
+- Fixed date-only values shifting to the next day because of UTC parsing.
+- Added a specific-date picker.
+- Calendar displays all published dates regardless of the Load Board range selection.
+- Calendar day counts and expandable `+ more` buttons.
+- Clicking a calendar date can filter the Load Board to that date.
+- Solid-black header and high-contrast black/white styling with bright accents.
+- Live America/Chicago date and time.
+- Current Fort Smith or Dallas weather using Open-Meteo without an API key.

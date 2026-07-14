@@ -1,13 +1,13 @@
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTgw11TS3xBI37HrqoJmJSI1ZSy5mxhT6-9BBUzr3jj9119oUZwAIAI-caD4W3m0SwjQdE7Xd4Pazf_/pub?output=csv";
 const CACHE_KEY = "lwh-load-board-data-v1";
-const state = {rows:[],loads:[],filtered:[],view:"board",calendarMonth:new Date(new Date().getFullYear(),new Date().getMonth(),1),deferredInstall:null};
+const state = {rows:[],loads:[],filtered:[],calendarFiltered:[],view:"board",calendarMonth:new Date(new Date().getFullYear(),new Date().getMonth(),1),deferredInstall:null,weatherLocation:"fort-smith"};
 const $=id=>document.getElementById(id), clean=v=>String(v??"").trim(), upper=v=>clean(v).toUpperCase();
 const number=v=>{const n=Number(String(v??"").replace(/,/g,""));return Number.isFinite(n)?n:0};
 const dateKey=d=>!(d instanceof Date)||Number.isNaN(d.valueOf())?"":`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const fmtDate=d=>d instanceof Date&&!Number.isNaN(d)?new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(d):"";
 const fmtNum=n=>new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(number(n));
 const escapeHtml=s=>clean(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-function parseDate(value){const s=clean(value);if(!s)return null;const d=new Date(s);if(!Number.isNaN(d.valueOf()))return d;const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){let y=Number(m[3]);if(y<100)y+=2000;return new Date(y,Number(m[1])-1,Number(m[2]))}return null}
+function parseDate(value){const s=clean(value);if(!s)return null;const iso=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s|T|$)/);if(iso)return new Date(Number(iso[1]),Number(iso[2])-1,Number(iso[3]));const us=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(us){let y=Number(us[3]);if(y<100)y+=2000;return new Date(y,Number(us[1])-1,Number(us[2]))}const d=new Date(s);return Number.isNaN(d.valueOf())?null:d}
 function parseCSV(text){const rows=[];let row=[],field="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i],next=text[i+1];if(c=='"'&&quoted&&next=='"'){field+='"';i++}else if(c=='"')quoted=!quoted;else if(c==","&&!quoted){row.push(field);field=""}else if((c=="\n"||c=="\r")&&!quoted){if(c=="\r"&&next=="\n")i++;row.push(field);field="";if(row.some(v=>v!==""))rows.push(row);row=[]}else field+=c}if(field||row.length){row.push(field);rows.push(row)}const headers=(rows.shift()||[]).map(h=>clean(h).replace(/^\uFEFF/,""));return rows.map(values=>Object.fromEntries(headers.map((h,i)=>[h,values[i]??""])))}
 function pick(row,...names){const entries=Object.entries(row);for(const name of names){const exact=entries.find(([k])=>upper(k)===upper(name));if(exact)return exact[1]}return""}
 function normalize(raw){return{date:parseDate(pick(raw,"CalendarDate","DeliveredDate","Date")),whse:clean(pick(raw,"WHSE","Warehouse")),direction:upper(pick(raw,"Direction")),customer:clean(pick(raw,"SubCust","Customer","SubCustNm")),pro:clean(pick(raw,"ProNumber","Pro Number","PRO")),relatedPro:clean(pick(raw,"RelatedPro","Related Pro")),billRef:clean(pick(raw,"BillToReference","Bill To Reference","BillToRefNum")),carrier:clean(pick(raw,"Carrier","CarrierName")),shipper:clean(pick(raw,"Shipper","ShipperName")),conName:clean(pick(raw,"ConName","Consignee")),status:clean(pick(raw,"Status")),item:clean(pick(raw,"ItemNm","Item","Item Number")),description:clean(pick(raw,"ItemDescription","Item Description","Description1")),units:number(pick(raw,"Units","UnitCount","Pallets")),qty:number(pick(raw,"ItemQty","Qty","Quantity")),instructions:clean(pick(raw,"Instructions")),comments:clean(pick(raw,"Comments")),raw}}
@@ -19,23 +19,103 @@ function useCSV(text){const raw=parseCSV(text);state.rows=raw.map(normalize).fil
 function showNotice(message){$("notice").textContent=message;$("notice").hidden=false}
 function populateFilters(){fillSelect("warehouseFilter",[...new Set(state.loads.map(x=>x.whse).filter(Boolean))].sort(),"All warehouses");fillSelect("statusFilter",[...new Set(state.loads.map(x=>x.status).filter(Boolean))].sort(),"All statuses")}
 function fillSelect(id,values,first){const el=$(id),current=el.value;el.innerHTML=`<option value="">${first}</option>`+values.map(v=>`<option>${escapeHtml(v)}</option>`).join("");if(values.includes(current))el.value=current}
-function applyFilters(){const q=upper($("searchInput").value),whse=$("warehouseFilter").value,direction=$("directionFilter").value,status=$("statusFilter").value,range=$("rangeFilter").value,today=new Date();today.setHours(0,0,0,0);state.filtered=state.loads.filter(load=>{if(whse&&load.whse!==whse)return false;if(direction&&load.direction!==direction)return false;if(status&&load.status!==status)return false;const d=load.date?new Date(load.date.getFullYear(),load.date.getMonth(),load.date.getDate()):null;if(range==="today"&&dateKey(d)!==dateKey(today))return false;if(range==="7"&&(!d||d<today||d>=new Date(today.getFullYear(),today.getMonth(),today.getDate()+7)))return false;if(range==="31"&&(!d||d<today||d>=new Date(today.getFullYear(),today.getMonth(),today.getDate()+31)))return false;if(range==="past"&&(!d||d>=today||d<new Date(today.getFullYear(),today.getMonth(),today.getDate()-91)))return false;if(q){const hay=upper([load.whse,load.direction,load.customer,load.pro,load.relatedPro,load.billRef,load.carrier,load.shipper,load.conName,load.status,load.instructions,load.comments,...load.items.flatMap(i=>[i.item,i.description])].join(" "));if(!hay.includes(q))return false}return true});renderAll()}
+function matchesCommonFilters(load){
+  const q=upper($("searchInput").value),whse=$("warehouseFilter").value,direction=$("directionFilter").value,status=$("statusFilter").value;
+  if(whse&&load.whse!==whse)return false;
+  if(direction&&load.direction!==direction)return false;
+  if(status&&load.status!==status)return false;
+  if(q){const hay=upper([load.whse,load.direction,load.customer,load.pro,load.relatedPro,load.billRef,load.carrier,load.shipper,load.conName,load.status,load.instructions,load.comments,...load.items.flatMap(i=>[i.item,i.description])].join(" "));if(!hay.includes(q))return false}
+  return true
+}
+function applyFilters(){
+  const range=$("rangeFilter").value,exact=$("exactDateFilter").value,today=new Date();today.setHours(0,0,0,0);
+  state.calendarFiltered=state.loads.filter(matchesCommonFilters);
+  state.filtered=state.calendarFiltered.filter(load=>{
+    const d=load.date?new Date(load.date.getFullYear(),load.date.getMonth(),load.date.getDate()):null;
+    if(exact)return dateKey(d)===exact;
+    if(range==="today"&&dateKey(d)!==dateKey(today))return false;
+    if(range==="7"&&(!d||d<today||d>=new Date(today.getFullYear(),today.getMonth(),today.getDate()+7)))return false;
+    if(range==="31"&&(!d||d<today||d>=new Date(today.getFullYear(),today.getMonth(),today.getDate()+31)))return false;
+    if(range==="past"&&(!d||d>=today||d<new Date(today.getFullYear(),today.getMonth(),today.getDate()-91)))return false;
+    return true
+  });
+  renderAll()
+}
 function renderAll(){renderKPIs();renderBoard();renderCalendar();renderTable();renderSummary()}
 function renderKPIs(){const loads=state.filtered,inbound=loads.filter(x=>x.direction==="INBOUND").length,outbound=loads.filter(x=>x.direction==="OUTBOUND").length,units=loads.reduce((s,l)=>s+loadMetrics(l).units,0),qty=loads.reduce((s,l)=>s+loadMetrics(l).qty,0),unmatched=loads.filter(l=>!l.items.length).length,cards=[["Loads",loads.length],["Inbound",inbound],["Outbound",outbound],["Units",fmtNum(units)],["Quantity",fmtNum(qty)],["No item match",unmatched]];$("kpis").innerHTML=cards.map(([label,value])=>`<article class="kpi"><div class="label">${label}</div><div class="value">${value}</div></article>`).join("")}
 function renderBoard(){const host=$("boardView");if(!state.filtered.length){host.innerHTML=$("emptyTemplate").innerHTML;return}const groups=new Map();state.filtered.forEach(l=>{const key=l.whse||"Warehouse not listed";if(!groups.has(key))groups.set(key,[]);groups.get(key).push(l)});host.innerHTML=[...groups.entries()].map(([whse,loads])=>`<section class="warehouse-group"><div class="group-heading"><h2>${escapeHtml(whse)}</h2><span>${loads.length} load${loads.length===1?"":"s"}</span></div><div class="load-grid">${loads.map(loadCard).join("")}</div></section>`).join("");host.querySelectorAll("[data-load]").forEach(b=>b.addEventListener("click",()=>openLoad(b.dataset.load)))}
 function loadCard(load){const m=loadMetrics(load),completed=upper(load.status).includes("COMPLETED");return`<article class="load-card ${load.direction==="OUTBOUND"?"outbound":""} ${completed?"completed":""}"><button class="card-open" data-load="${escapeHtml(load.key)}"><div class="card-top"><div><div class="date">${escapeHtml(fmtDate(load.date))}</div><span class="status-pill">${escapeHtml(load.status||"Status not listed")}</span></div><div class="direction">${escapeHtml(load.direction||"UNKNOWN")}</div></div><div class="card-body"><h3 class="customer">${escapeHtml(load.customer||load.conName||"Customer not listed")}</h3><div class="reference"><b>Pro</b><span>${escapeHtml(load.pro||"—")}</span><b>Bill To Ref</b><span>${escapeHtml(load.billRef||"—")}</span><b>Carrier</b><span>${escapeHtml(load.carrier||"—")}</span></div></div><div class="card-items"><div class="metric"><b>${fmtNum(m.itemCount)}</b><span>Items</span></div><div class="metric"><b>${fmtNum(m.units)}</b><span>Units</span></div><div class="metric"><b>${fmtNum(m.qty)}</b><span>Qty</span></div></div></button></article>`}
 function renderTable(){const host=$("tableView");if(!state.filtered.length){host.innerHTML=$("emptyTemplate").innerHTML;return}const rows=[];state.filtered.forEach(load=>{if(load.items.length)load.items.forEach(item=>rows.push({load,item}));else rows.push({load,item:{item:"",description:"",units:0,qty:0}})});host.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>WHSE</th><th>Direction</th><th>Status</th><th>Customer</th><th>Pro</th><th>Bill To Ref</th><th>Item</th><th>Description</th><th>Units</th><th>Qty</th><th>Carrier</th></tr></thead><tbody>${rows.map(x=>{const l=x.load,i=x.item;return`<tr><td>${escapeHtml(fmtDate(l.date))}</td><td>${escapeHtml(l.whse)}</td><td>${escapeHtml(l.direction)}</td><td>${escapeHtml(l.status)}</td><td>${escapeHtml(l.customer)}</td><td>${escapeHtml(l.pro)}</td><td>${escapeHtml(l.billRef)}</td><td>${escapeHtml(i.item)}</td><td>${escapeHtml(i.description)}</td><td>${fmtNum(i.units)}</td><td>${fmtNum(i.qty)}</td><td>${escapeHtml(l.carrier)}</td></tr>`}).join("")}</tbody></table></div>`}
-function renderCalendar(){const host=$("calendarView"),month=state.calendarMonth,y=month.getFullYear(),m=month.getMonth(),first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),byDate=new Map();state.filtered.forEach(l=>{const k=dateKey(l.date);if(!byDate.has(k))byDate.set(k,[]);byDate.get(k).push(l)});let cells="";for(let i=0;i<42;i++){const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i),list=byDate.get(dateKey(d))||[];cells+=`<div class="calendar-day ${d.getMonth()!==m?"muted":""} ${dateKey(d)===dateKey(new Date())?"today":""}"><div class="day-number">${d.getDate()}</div>${list.slice(0,4).map(l=>`<button class="day-load" data-load="${escapeHtml(l.key)}">${escapeHtml(l.whse)} · ${escapeHtml(l.customer||l.pro||l.billRef)}</button>`).join("")}${list.length>4?`<div class="day-load">+${list.length-4} more</div>`:""}</div>`}host.innerHTML=`<div class="calendar-controls"><button id="prevMonth">← Previous</button><h2>${new Intl.DateTimeFormat("en-US",{month:"long",year:"numeric"}).format(month)}</h2><button id="nextMonth">Next →</button></div><div class="calendar-grid">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>`<div class="day-name">${x}</div>`).join("")}${cells}</div>`;$("prevMonth").onclick=()=>{state.calendarMonth=new Date(y,m-1,1);renderCalendar()};$("nextMonth").onclick=()=>{state.calendarMonth=new Date(y,m+1,1);renderCalendar()};host.querySelectorAll("[data-load]").forEach(b=>b.addEventListener("click",()=>openLoad(b.dataset.load)))}
+function renderCalendar(){
+  const host=$("calendarView"),month=state.calendarMonth,y=month.getFullYear(),m=month.getMonth(),first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),byDate=new Map();
+  state.calendarFiltered.forEach(l=>{const k=dateKey(l.date);if(!k)return;if(!byDate.has(k))byDate.set(k,[]);byDate.get(k).push(l)});
+  let cells="";
+  for(let i=0;i<42;i++){
+    const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i),key=dateKey(d),list=byDate.get(key)||[];
+    cells+=`<div class="calendar-day ${d.getMonth()!==m?"muted":""} ${key===dateKey(new Date())?"today":""}">
+      <button class="day-number" data-day="${key}" title="Filter load board to this date">${d.getDate()}</button>
+      <div class="day-count">${list.length?`${list.length} load${list.length===1?"":"s"}`:""}</div>
+      ${list.slice(0,3).map(l=>`<button class="day-load" data-load="${escapeHtml(l.key)}"><span>${escapeHtml(l.whse)}</span>${escapeHtml(l.customer||l.pro||l.billRef)}</button>`).join("")}
+      ${list.length>3?`<button class="day-more" data-day="${key}">+ ${list.length-3} more</button>`:""}
+    </div>`
+  }
+  host.innerHTML=`<div class="calendar-note">Calendar displays every published date matching the warehouse, direction, status, and search filters. The Load Board date-range filter does not hide calendar dates.</div>
+    <div class="calendar-controls"><button id="prevMonth">← Previous</button><h2>${new Intl.DateTimeFormat("en-US",{month:"long",year:"numeric"}).format(month)}</h2><button id="calendarToday">Today</button><button id="nextMonth">Next →</button></div>
+    <div class="calendar-grid">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>`<div class="day-name">${x}</div>`).join("")}${cells}</div>`;
+  $("prevMonth").onclick=()=>{state.calendarMonth=new Date(y,m-1,1);renderCalendar()};
+  $("nextMonth").onclick=()=>{state.calendarMonth=new Date(y,m+1,1);renderCalendar()};
+  $("calendarToday").onclick=()=>{const now=new Date();state.calendarMonth=new Date(now.getFullYear(),now.getMonth(),1);renderCalendar()};
+  host.querySelectorAll("[data-load]").forEach(b=>b.addEventListener("click",()=>openLoad(b.dataset.load)));
+  host.querySelectorAll("[data-day]").forEach(b=>b.addEventListener("click",()=>openDay(b.dataset.day,byDate.get(b.dataset.day)||[])))
+}
+function openDay(dayKey,loads){
+  const d=parseDate(dayKey);
+  $("dialogContent").innerHTML=`<div class="dialog-inner"><h2>${escapeHtml(fmtDate(d))}</h2>
+    <div class="day-dialog-actions"><button id="filterThisDate" class="action-button">Show only this date on Load Board</button></div>
+    <div class="day-dialog-list">${loads.length?loads.map(load=>{const m=loadMetrics(load);return`<button class="day-dialog-load" data-load="${escapeHtml(load.key)}"><b>${escapeHtml(load.whse||"No warehouse")} · ${escapeHtml(load.direction||"Load")}</b><span>${escapeHtml(load.customer||load.pro||load.billRef||"Load")}</span><small>${escapeHtml(load.status)} · ${m.itemCount} items · ${fmtNum(m.units)} units</small></button>`}).join(""):"<p>No loads are published for this date.</p>"}</div></div>`;
+  $("loadDialog").showModal();
+  $("filterThisDate").onclick=()=>{$("exactDateFilter").value=dayKey;$("rangeFilter").value="all";applyFilters();$("loadDialog").close();document.querySelector('[data-view="board"]').click()};
+  $("dialogContent").querySelectorAll("[data-load]").forEach(b=>b.addEventListener("click",()=>openLoad(b.dataset.load)))
+}
 function renderSummary(){const host=$("summaryView");if(!state.filtered.length){host.innerHTML=$("emptyTemplate").innerHTML;return}host.innerHTML=`<div class="summary-grid">${summaryBlock("By Warehouse",summarize("whse"))}${summaryBlock("By Customer",summarize("customer"))}${summaryBlock("By Item",summarizeItems())}</div>`}
 function summarize(field){const map=new Map();state.filtered.forEach(l=>{const k=l[field]||"Not listed",m=loadMetrics(l),v=map.get(k)||{name:k,loads:0,units:0,qty:0};v.loads++;v.units+=m.units;v.qty+=m.qty;map.set(k,v)});return[...map.values()].sort((a,b)=>b.loads-a.loads)}
 function summarizeItems(){const map=new Map();state.filtered.forEach(l=>l.items.forEach(i=>{const k=i.item||"Not listed",v=map.get(k)||{name:k,loads:0,units:0,qty:0,keys:new Set()};v.keys.add(l.key);v.loads=v.keys.size;v.units+=i.units;v.qty+=i.qty;map.set(k,v)}));return[...map.values()].sort((a,b)=>b.loads-a.loads).slice(0,50)}
 function summaryBlock(title,rows){return`<section class="summary-card"><h2>${title}</h2><div class="summary-row head"><span>Name</span><span>Loads</span><span>Units</span><span>Qty</span></div>${rows.map(r=>`<div class="summary-row"><span>${escapeHtml(r.name)}</span><span>${fmtNum(r.loads)}</span><span>${fmtNum(r.units)}</span><span>${fmtNum(r.qty)}</span></div>`).join("")}</section>`}
 function openLoad(key){const l=state.loads.find(x=>x.key===key);if(!l)return;const m=loadMetrics(l);$("dialogContent").innerHTML=`<div class="dialog-inner"><h2>${escapeHtml(l.direction||"Load")} — ${escapeHtml(l.customer||l.pro||l.billRef)}</h2><div class="detail-grid">${detail("Date",fmtDate(l.date))}${detail("Warehouse",l.whse)}${detail("Status",l.status)}${detail("Carrier",l.carrier)}${detail("Pro Number",l.pro)}${detail("Related Pro",l.relatedPro)}${detail("Bill To Reference",l.billRef)}${detail("Consignee",l.conName)}${detail("Shipper",l.shipper)}${detail("Load Totals",`${m.itemCount} items · ${fmtNum(m.units)} units · ${fmtNum(m.qty)} qty`)}</div><section class="item-list"><h3>Items</h3>${l.items.length?l.items.map(i=>`<div class="item-row"><div><b>${escapeHtml(i.item)}</b><br><small>${escapeHtml(i.description)}</small></div><div><b>${fmtNum(i.units)}</b><br><small>Units</small></div><div class="qty"><b>${fmtNum(i.qty)}</b><br><small>Quantity</small></div></div>`).join(""):"<p>No matched transaction items are published for this load yet.</p>"}</section>${l.instructions?`<div class="notes"><b>Instructions</b><br>${escapeHtml(l.instructions)}</div>`:""}${l.comments?`<div class="notes"><b>Comments</b><br>${escapeHtml(l.comments)}</div>`:""}</div>`;$("loadDialog").showModal()}
 function detail(label,value){return`<div class="detail"><span>${label}</span><b>${escapeHtml(value||"—")}</b></div>`}
+const WEATHER_LOCATIONS={
+  "fort-smith":{name:"Fort Smith, AR",lat:35.3859,lon:-94.3985},
+  "dallas":{name:"Dallas, TX",lat:32.7767,lon:-96.7970}
+};
+function weatherText(code){
+  const map={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Cloudy",45:"Fog",48:"Icy fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",71:"Light snow",73:"Snow",75:"Heavy snow",80:"Rain showers",81:"Rain showers",82:"Heavy showers",95:"Thunderstorms",96:"Storms with hail",99:"Severe storms"};
+  return map[code]||"Current conditions"
+}
+function updateClock(){
+  const now=new Date();
+  $("currentDate").textContent=new Intl.DateTimeFormat("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric",timeZone:"America/Chicago"}).format(now);
+  $("currentTime").textContent=new Intl.DateTimeFormat("en-US",{hour:"numeric",minute:"2-digit",second:"2-digit",timeZone:"America/Chicago",timeZoneName:"short"}).format(now)
+}
+async function loadWeather(){
+  const loc=WEATHER_LOCATIONS[$("weatherLocation").value]||WEATHER_LOCATIONS["fort-smith"];
+  $("weatherNow").textContent="Weather loading…";$("weatherDetail").textContent=loc.name;
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FChicago`;
+    const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw new Error("Weather unavailable");
+    const data=await response.json(),c=data.current||{};
+    $("weatherNow").textContent=`${Math.round(c.temperature_2m)}°F · ${weatherText(c.weather_code)}`;
+    $("weatherDetail").textContent=`${loc.name} · Feels ${Math.round(c.apparent_temperature)}° · Wind ${Math.round(c.wind_speed_10m)} mph`
+  }catch(error){$("weatherNow").textContent="Weather unavailable";$("weatherDetail").textContent=loc.name;console.error(error)}
+}
 document.querySelectorAll(".toolbar input,.toolbar select").forEach(el=>el.addEventListener("input",applyFilters));
 document.querySelectorAll(".tab").forEach(tab=>tab.addEventListener("click",()=>{state.view=tab.dataset.view;document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t===tab));["board","calendar","table","summary"].forEach(v=>$(v+"View").hidden=v!==state.view)}));
-$("refreshBtn").onclick=loadData;$("closeDialog").onclick=()=>$("loadDialog").close();$("loadDialog").addEventListener("click",e=>{if(e.target===$("loadDialog"))$("loadDialog").close()});
+$("refreshBtn").onclick=()=>{loadData();loadWeather()};
+$("exactDateFilter").addEventListener("input",()=>{if($("exactDateFilter").value)$("rangeFilter").value="all";applyFilters()});
+$("rangeFilter").addEventListener("input",()=>{if($("rangeFilter").value!=="all")$("exactDateFilter").value=""});
+$("clearFilters").onclick=()=>{$("searchInput").value="";$("warehouseFilter").value="";$("directionFilter").value="";$("statusFilter").value="";$("rangeFilter").value="today";$("exactDateFilter").value="";applyFilters()};
+$("weatherLocation").addEventListener("change",loadWeather);
+$("closeDialog").onclick=()=>$("loadDialog").close();$("loadDialog").addEventListener("click",e=>{if(e.target===$("loadDialog"))$("loadDialog").close()});
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();state.deferredInstall=e;$("installBtn").hidden=false});
 $("installBtn").onclick=async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$("installBtn").hidden=true};
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js"));
-loadData();
+updateClock();setInterval(updateClock,1000);loadWeather();setInterval(loadWeather,900000);loadData();
