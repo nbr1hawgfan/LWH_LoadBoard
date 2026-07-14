@@ -155,6 +155,10 @@ Full re-skin based on feedback that the ledger/manifest look read as dated. New 
 - **Calendar day view is easier to read**: bigger text and better contrast in the "N more" day-detail popup (previously small, low-contrast muted text).
 - **Pro Number / Bill To Reference now shown per load** in that same day-detail popup, so you don't have to open each load individually just to see which one you're looking for.
 
+## Version 2.7.2 — calendar cell now shows Pro/Ref instead of customer
+
+- The compact calendar day-cell buttons (the 3 shown before "+N more") now read "Warehouse · Pro Number" instead of "Warehouse · Customer" — falls back to Bill To Reference if no Pro Number, then customer if neither exists. Directly solves telling apart a day with seven "WHSE10 · TRAFO" loads at a glance, without needing to open the expanded day view.
+
 ### Labor module
 
 
