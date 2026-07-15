@@ -171,6 +171,11 @@ Full re-skin based on feedback that the ledger/manifest look read as dated. New 
 - Appearance (light/dark) and Theme (accent color: Indigo/Blue/Green/Maroon/High Contrast) are independent settings now — pick any accent color with either light or dark, except High Contrast, which is a self-contained look on its own regardless of the toggle.
 - The choice is saved per-browser (same as every other setting), so different people using the same shared computer would each need to set their own preference once.
 
+## Version 2.8.1 — Load Board filter bar: Yesterday + Current Week
+
+- Added **Yesterday** and **Current Week** to the Load Board's Today / Next 7 Days / Next 31 / All filter bar. Current Week uses the same Sunday–Saturday workweek definition as Labor's existing "This Workweek" filter, so the two stay consistent with each other.
+- Filter bar now reads: Yesterday, Today, Current Week, Next 7 Days, Next 31, All.
+
 ### Labor module
 
 

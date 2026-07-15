@@ -138,7 +138,7 @@ h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em}
 .bar-fill{height:100%;background:var(--accent);border-radius:99px}
 .bar-row b{font-family:var(--font-data);font-weight:600}
 
-.segmented{display:flex;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2)}
+.segmented{display:flex;flex-wrap:wrap;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2)}
 .segmented button{padding:8px 14px;border:0;border-radius:999px;background:transparent;font-family:var(--font-display);font-weight:700;font-size:.8rem;color:var(--muted)}
 .segmented button.active{background:var(--accent);color:#fff}
 
